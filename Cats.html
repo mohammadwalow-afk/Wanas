@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cats AI - كاتس</title>
-    <!-- ربط الأيقونات للمكالمات -->
+    <!-- ربط الأيقونات للمكالمات والإعدادات -->
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         :root {
@@ -77,6 +77,7 @@
             display: flex;
             gap: 20px;
             font-size: 1.3rem;
+            align-items: center;
         }
 
         .call-actions i {
@@ -153,6 +154,54 @@
             align-items: center;
             justify-content: center;
             font-size: 1.1rem;
+        }
+
+        /* نافذة الإعدادات الجانبية المنبثقة لمفتاح API */
+        .settings-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: #111b21;
+            color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            transition: left 0.3s ease;
+            z-index: 50;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .settings-sidebar.open {
+            left: 0;
+        }
+
+        .settings-sidebar h2 {
+            font-size: 1.3rem;
+            border-bottom: 1px solid #233138;
+            padding-bottom: 10px;
+        }
+
+        .settings-sidebar input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #233138;
+            background-color: #2a3942;
+            color: white;
+            outline: none;
+        }
+
+        .settings-sidebar button {
+            background-color: var(--whatsapp-green);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         /* واجهة شاشة المكالمات المنبثقة */
@@ -232,6 +281,7 @@
 </head>
 <body>
 
+    <!-- شريط التطبيق العلوي -->
     <div class="header">
         <div class="user-info">
             <div class="avatar">🐾</div>
@@ -241,15 +291,27 @@
             </div>
         </div>
         <div class="call-actions">
-            <i class="fas fa-video" onclick="startCall('video')"></i>
-            <i class="fas fa-phone" onclick="startCall('voice')"></i>
+            <i class="fas fa-video" onclick="startCall('video')" title="مكالمة فيديو"></i>
+            <i class="fas fa-phone" onclick="startCall('voice')" title="مكالمة صوتية"></i>
+            <i class="fas fa-cog" onclick="toggleSettings()" title="الإعدادات"></i>
         </div>
     </div>
 
+    <!-- نافذة الإعدادات الجانبية -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <h2>إعدادات المنصة 🐾</h2>
+        <div>
+            <label style="font-size: 0.9rem; display:block; margin-bottom: 8px;">مفتاح Gemini API Key:</label>
+            <input type="password" id="apiKeyInput" placeholder="الصق مفتاح الـ API هنا...">
+        </div>
+        <button onclick="saveApiKey()">حفظ وإغلاق</button>
+    </div>
+
+    <!-- ساحة الدردشة -->
     <div class="chat-container" id="chat-box">
         <div class="message ai">
             أهلاً بك يا معلمي محمد في تطبيقك المستقل الجديد **Cats AI**! 🌄<br><br>
-            هذه المنصة مخصصة لك ولأصدقائك بوضوح فائق ومميزات مكالمات كاملة.
+            اضغط على أيقونة الترس ⚙️ في الأعلى لإدخال مفتاح Gemini الفعلي لتفعيل المحادثة الذكية الحية الآن الفورية.
         </div>
     </div>
 
@@ -274,59 +336,12 @@
     </div>
 
     <script>
-        function sendMessage() {
-            const inputField = document.getElementById('user-input');
-            const messageText = inputField.value.trim();
-            if (!messageText) return;
+        // تحميل الـ API Key المحفوظ عند فتح التطبيق
+        document.getElementById('apiKeyInput').value = localStorage.getItem('cats_api_key') || '';
 
-            const chatBox = document.getElementById('chat-box');
-            const userDiv = document.createElement('div');
-            userDiv.className = 'message user';
-            userDiv.innerHTML = messageText;
-            chatBox.appendChild(userDiv);
-
-            inputField.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            setTimeout(() => {
-                const aiDiv = document.createElement('div');
-                aiDiv.className = 'message ai';
-                aiDiv.innerHTML = "رسالة ذكية مستلمة في تطبيق Cats الجديد! سنربط الـ API الخاص بـ Gemini في الخطوة القادمة للرد الفعلي الحقيقي.";
-                chatBox.appendChild(aiDiv);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 1000);
+        function toggleSettings() {
+            document.getElementById('settingsSidebar').classList.toggle('open');
         }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') sendMessage();
-        }
-
-        let localStream = null;
-        async function startCall(type) {
-            document.getElementById('callWindow').style.display = 'flex';
-            const status = document.getElementById('callTypeStatus');
-            const videoBox = document.getElementById('videoContainer');
-
-            if (type === 'video') {
-                status.textContent = "جاري تشغيل مكالمة الفيديو البصرية...";
-                videoBox.style.display = 'block';
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    document.getElementById('localVideo').srcObject = localStream;
-                } catch (err) {
-                    status.textContent = "تم بدء المكالمة (بدون كاميرا - يرجى إعطاء الإذن)";
-                }
-            } else {
-                status.textContent = "جاري الاتصال الصوتي المشفر...";
-                videoBox.style.display = 'none';
-            }
-        }
-
-        function endCall() {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-            document.getElementById('callWindow').style.display = 'none';
-        }
-      
+        function saveApiKey() {
+            
