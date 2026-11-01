@@ -1,0 +1,21 @@
+{
+  "short_name": "Cats AI",
+  "name": "Cats AI - كاتس",
+  "icons": [
+    {
+      "src": "https://github.io",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://github.io",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./Cats.html",
+  "background_color": "#005c4b",
+  "theme_color": "#008069",
+  "display": "standalone",
+  "orientation": "portrait"
+}
