@@ -1,1 +1,347 @@
 
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cats AI - كاتس</title>
+    <!-- ربط الأيقونات للمكالمات والإعدادات -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root {
+            --whatsapp-green: #008069;
+            --whatsapp-dark: #005c4b;
+            --text-dark: #111b21;
+            --user-bubble: rgba(217, 253, 211, 0.95);
+            --ai-bubble: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            /* خلفية منظر طبيعي خلاب بجودة عالية ومريحة للعين */
+            background-image: url('https://unsplash.com');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* شريط العنوان العلوي */
+        .header {
+            background-color: var(--whatsapp-dark);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background-color: #eceff1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .user-details h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .user-details .status {
+            font-size: 0.8rem;
+            color: #86ffb4;
+        }
+
+        .call-actions {
+            display: flex;
+            gap: 20px;
+            font-size: 1.3rem;
+            align-items: center;
+        }
+
+        .call-actions i {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .call-actions i:hover {
+            color: #86ffb4;
+        }
+
+        /* منطقة المحادثة الفائقة الوضوح */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: rgba(0, 0, 0, 0.2); /* طبقة تعتيم خفيفة لإبراز الخطوط */
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            line-height: 1.5;
+            color: var(--text-dark);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .message.user {
+            background-color: var(--user-bubble);
+            align-self: flex-start;
+            border-top-right-radius: 0;
+        }
+
+        .message.ai {
+            background-color: var(--ai-bubble);
+            align-self: flex-end;
+            border-top-left-radius: 0;
+        }
+
+        /* شريط الإدخال السفلي */
+        .input-area {
+            background-color: rgba(240, 242, 245, 0.95);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .send-btn {
+            background-color: var(--whatsapp-green);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* نافذة الإعدادات الجانبية المنبثقة لمفتاح API */
+        .settings-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: #111b21;
+            color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+            transition: left 0.3s ease;
+            z-index: 50;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .settings-sidebar.open {
+            left: 0;
+        }
+
+        .settings-sidebar h2 {
+            font-size: 1.3rem;
+            border-bottom: 1px solid #233138;
+            padding-bottom: 10px;
+        }
+
+        .settings-sidebar input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #233138;
+            background-color: #2a3942;
+            color: white;
+            outline: none;
+        }
+
+        .settings-sidebar button {
+            background-color: var(--whatsapp-green);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* واجهة شاشة المكالمات المنبثقة */
+        .call-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111b21;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 20px;
+            z-index: 100;
+            display: none;
+        }
+
+        .call-avatar {
+            width: 120px;
+            height: 120px;
+            background-color: #233138;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+
+        .call-status {
+            color: #86ffb4;
+            animation: pulse 1.5s infinite;
+        }
+
+        .video-container {
+            width: 80%;
+            max-width: 400px;
+            height: 250px;
+            background: #000;
+            border-radius: 15px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .call-buttons {
+            display: flex;
+            gap: 30px;
+        }
+
+        .btn-call {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .btn-call.hangup { background-color: #ea0038; }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شريط التطبيق العلوي -->
+    <div class="header">
+        <div class="user-info">
+            <div class="avatar">🐾</div>
+            <div class="user-details">
+                <h1>Cats AI</h1>
+                <div class="status">متصل الآن</div>
+            </div>
+        </div>
+        <div class="call-actions">
+            <i class="fas fa-video" onclick="startCall('video')" title="مكالمة فيديو"></i>
+            <i class="fas fa-phone" onclick="startCall('voice')" title="مكالمة صوتية"></i>
+            <i class="fas fa-cog" onclick="toggleSettings()" title="الإعدادات"></i>
+        </div>
+    </div>
+
+    <!-- نافذة الإعدادات الجانبية -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <h2>إعدادات المنصة 🐾</h2>
+        <div>
+            <label style="font-size: 0.9rem; display:block; margin-bottom: 8px;">مفتاح Gemini API Key:</label>
+            <input type="password" id="apiKeyInput" placeholder="الصق مفتاح الـ API هنا...">
+        </div>
+        <button onclick="saveApiKey()">حفظ وإغلاق</button>
+    </div>
+
+    <!-- ساحة الدردشة -->
+    <div class="chat-container" id="chat-box">
+        <div class="message ai">
+            أهلاً بك يا معلمي محمد في تطبيقك المستقل الجديد **Cats AI**! 🌄<br><br>
+            اضغط على أيقونة الترس ⚙️ في الأعلى لإدخال مفتاح Gemini الفعلي لتفعيل المحادثة الذكية الحية الآن الفورية.
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleKeyPress(event)">
+        <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <!-- شاشة المكالمات -->
+    <div class="call-overlay" id="callWindow">
+        <div style="text-align: center;">
+            <div class="call-avatar">🐾</div>
+            <h2>Cats AI Connection</h2>
+            <div class="call-status" id="callTypeStatus">جاري الاتصال...</div>
+        </div>
+        <div class="video-container" id="videoContainer">
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="call-buttons">
+            <button class="btn-call hangup" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // تحميل الـ API Key المحفوظ عند فتح التطبيق
+        document.getElementById('apiKeyInput').value = localStorage.getItem('cats_api_key') || '';
+
+        function toggleSettings() {
+            document.getElementById('settingsSidebar').classList.toggle('open');
+        }
+
+        function saveApiKey() {
